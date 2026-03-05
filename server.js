@@ -17,7 +17,6 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use(express.static(__dirname));
 
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -77,7 +76,7 @@ app.get('/callback', async (req, res) => {
         db.get(`SELECT * FROM users WHERE discordId = ?`, [discordUser.id], (err, user) => {
             if (user) {
                 if (user.banned) {
-                    return res.send('<script>alert("Account banned"); window.location.href="/login.html";</script>');
+                    return res.redirect('https://batmansai.netlify.app/login.html?error=banned');
                 }
                 const updatedUser = {
                     ...user,
@@ -109,7 +108,7 @@ app.get('/callback', async (req, res) => {
         });
     } catch (error) {
         console.error('Discord OAuth Error:', error.response?.data || error.message);
-        res.send('<script>alert("Discord login failed"); window.location.href="/login.html";</script>');
+        res.redirect('https://batmansai.netlify.app/login.html?error=auth_failed');
     }
 });
 
@@ -216,7 +215,9 @@ app.post('/api/announcements/clear', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', () => {
     db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false')`);
-    console.log('Server running on http://localhost:3000');
+    console.log(`Server running on port ${PORT}`);
 });
