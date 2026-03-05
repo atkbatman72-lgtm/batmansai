@@ -50,7 +50,16 @@ function generateUserId() {
 }
 
 app.get('/callback', async (req, res) => {
-    const { code } = req.query;
+    const { code, error } = req.query;
+    
+    if (error) {
+        console.log('Discord OAuth error:', error);
+        return res.redirect(`https://batmansai.netlify.app/login.html?error=${error}`);
+    }
+    
+    if (!code) {
+        return res.redirect('https://batmansai.netlify.app/login.html?error=no_code');
+    }
     
     try {
         const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', 
